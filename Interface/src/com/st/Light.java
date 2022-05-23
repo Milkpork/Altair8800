@@ -28,7 +28,7 @@ public class Light extends JPanel {
         frame.setContentPane(root);
         Light c = new Light(50);
         root.add(c);
-        c.setPreferredSize(new Dimension(100, 50));
+        c.setPreferredSize(new Dimension(50, 50));
         c.switchLight();
         //        test
         c.addMouseListener(new MouseAdapterMod());  // 添加鼠标响应事件
@@ -39,14 +39,16 @@ public class Light extends JPanel {
         this.radius = radius;
         this.fundColor = new Color(79, 11, 11);
         this.lightingColor = new Color(239, 117, 117);
+        this.setPreferredSize(new Dimension(radius, radius));
+
     }
 
     public Light() {
         this.radius = 20;
         this.fundColor = new Color(79, 11, 11);
         this.lightingColor = new Color(239, 117, 117);
-//        test
-        this.addMouseListener(new MouseAdapterMod());  // 添加鼠标响应事件
+        this.setPreferredSize(new Dimension(50, 50));
+
     }
 
     // 绘图函数
