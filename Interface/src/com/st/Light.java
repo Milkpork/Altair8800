@@ -5,7 +5,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-class MouseAdapterMod extends MouseAdapter {
+class MouseAdapterModTest extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         Light sender = (Light) e.getSource();
         sender.switchLight();
@@ -18,6 +18,7 @@ public class Light extends JPanel {
     public final int radius;
     private final Color fundColor;
     private final Color lightingColor;
+    private final String text;
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
@@ -26,29 +27,28 @@ public class Light extends JPanel {
 
         JPanel root = new JPanel();
         frame.setContentPane(root);
-        Light c = new Light(50);
+        Light c = new Light("hello");
         root.add(c);
-        c.setPreferredSize(new Dimension(50, 50));
         c.switchLight();
         //        test
-        c.addMouseListener(new MouseAdapterMod());  // 添加鼠标响应事件
+        c.addMouseListener(new MouseAdapterModTest());  // 添加鼠标响应事件
         frame.setVisible(true);
     }
 
-    public Light(int radius) {
+    public Light(String text, int radius) {
+        this.text = text;
         this.radius = radius;
         this.fundColor = new Color(79, 11, 11);
         this.lightingColor = new Color(239, 117, 117);
-        this.setPreferredSize(new Dimension(radius, radius));
-
+        this.myFundSettings();
     }
 
-    public Light() {
-        this.radius = 20;
+    public Light(String text) {
+        this.text = text;
+        this.radius = 30;
         this.fundColor = new Color(79, 11, 11);
         this.lightingColor = new Color(239, 117, 117);
-        this.setPreferredSize(new Dimension(50, 50));
-
+        this.myFundSettings();
     }
 
     // 绘图函数
@@ -60,13 +60,19 @@ public class Light extends JPanel {
         } else {
             g.setColor(this.fundColor);
         }
-        g.fillOval(0, 0, radius, radius);
+        g.fillOval(0, 20, radius, radius);
+        g.setColor(new Color(0, 0, 0));
+        g.drawString(this.text, 0, 20);
+
+    }
+
+    private void myFundSettings() {
+        this.setPreferredSize(new Dimension(radius, radius + 20));
     }
 
     // 切换
     public void switchLight() {
         this.isLighting = !this.isLighting;
-        System.out.println("Switch light");
         this.repaint();
     }
 }

@@ -4,14 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 
-class MouseAdapterMod2 extends MouseAdapter {
+class MouseAdapterMod extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         Switch sender = (Switch) e.getSource();
         sender.switchStatus();
-        System.out.println(sender.isOn);
     }
 }
+
 public class Switch extends JPanel {
     boolean isOn;
     String upString, downString;
@@ -23,10 +24,8 @@ public class Switch extends JPanel {
 
         JPanel root = new JPanel();
         frame.setContentPane(root);
-        Switch c = new Switch("hello");
+        Switch c = new Switch("    on", "    off");
         root.add(c);
-        c.addMouseListener(new MouseAdapterMod2());  // 添加鼠标响应事件
-
         frame.setVisible(true);
     }
 
@@ -34,7 +33,7 @@ public class Switch extends JPanel {
         this.upString = s;
         this.downString = "";
         this.isOn = false;
-        this.setPreferredSize(new Dimension(50, 100));
+        this.myFundSettings();
 
     }
 
@@ -42,8 +41,7 @@ public class Switch extends JPanel {
         this.upString = sUp;
         this.downString = sDown;
         this.isOn = false;
-        this.setPreferredSize(new Dimension(50, 100));
-
+        this.myFundSettings();
     }
 
     @Override
@@ -51,17 +49,30 @@ public class Switch extends JPanel {
         super.paintComponent(g);
         g.setColor(new Color(10, 10, 10));
         if (this.isOn) {
-            g.fillRect(0, 0, 48, 49);
+            g.fillRect(10, 25, 30, 25);
         } else {
-            g.fillRect(0, 49, 48, 49);
+            g.fillRect(10, 50, 30, 25);
 
         }
-        g.drawRect(0, 0, 48, 98);
+        g.drawRect(10, 25, 30, 50);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString(this.upString, 0, 16);
+        if (!Objects.equals(this.downString, "")) {
+            g.drawString(this.downString, 0, 91);
+
+        }
+    }
+
+    private void myFundSettings() {
+        this.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        this.setPreferredSize(new Dimension(50, 100));
+        this.addMouseListener(new MouseAdapterMod());  // 添加鼠标响应事件
+
     }
 
     public void switchStatus() {
         this.isOn = !this.isOn;
-        System.out.println("Switch light");
+        System.out.println(this.getVisibleRect());
         this.repaint();
     }
 
