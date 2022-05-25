@@ -9,7 +9,7 @@ class MouseAdapterModTest extends MouseAdapter {
     public void mouseClicked(MouseEvent e) {
         Light sender = (Light) e.getSource();
         sender.switchLight();
-        System.out.println(sender.radius);
+//        System.out.println(sender.radius);
     }
 }
 
@@ -45,7 +45,7 @@ public class Light extends JPanel {
 
     public Light(String text) {
         this.text = text;
-        this.radius = 30;
+        this.radius = 20;
         this.fundColor = new Color(79, 11, 11);
         this.lightingColor = new Color(239, 117, 117);
         this.myFundSettings();
@@ -62,6 +62,7 @@ public class Light extends JPanel {
         }
         g.fillOval(0, 20, radius, radius);
         g.setColor(new Color(0, 0, 0));
+        g.setFont(new Font("Arial", Font.PLAIN,8));
         g.drawString(this.text, 0, 20);
 
     }

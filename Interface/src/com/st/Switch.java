@@ -2,20 +2,40 @@ package com.st;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 
-class MouseAdapterMod extends MouseAdapter {
-    public void mouseClicked(MouseEvent e) {
-        Switch sender = (Switch) e.getSource();
-        sender.switchStatus();
-    }
-}
 
 public class Switch extends JPanel {
     boolean isOn;
+    Timer timer;
+    int nowYPos = 35;
     String upString, downString;
+
+    ActionListener taskPerformer = new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (isOn) {
+                if (nowYPos > 20) {
+                    repaint();
+                } else {
+                    Timer t = (Timer) e.getSource();
+                    t.stop();
+                }
+            } else {
+                if (nowYPos < 35) {
+                    repaint();
+                } else {
+                    Timer t = (Timer) e.getSource();
+                    t.stop();
+                }
+            }
+        }
+    };
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
@@ -24,7 +44,7 @@ public class Switch extends JPanel {
 
         JPanel root = new JPanel();
         frame.setContentPane(root);
-        Switch c = new Switch("    on", "    off");
+        Switch c = new Switch("SINGLE");
         root.add(c);
         frame.setVisible(true);
     }
@@ -33,6 +53,7 @@ public class Switch extends JPanel {
         this.upString = s;
         this.downString = "";
         this.isOn = false;
+        timer = new Timer(5, taskPerformer);
         this.myFundSettings();
 
     }
@@ -41,6 +62,7 @@ public class Switch extends JPanel {
         this.upString = sUp;
         this.downString = sDown;
         this.isOn = false;
+        timer = new Timer(5, taskPerformer);
         this.myFundSettings();
     }
 
@@ -49,31 +71,41 @@ public class Switch extends JPanel {
         super.paintComponent(g);
         g.setColor(new Color(10, 10, 10));
         if (this.isOn) {
-            g.fillRect(10, 25, 30, 25);
+            if (this.nowYPos != 20) {
+                this.nowYPos -= 1;
+            }
         } else {
-            g.fillRect(10, 50, 30, 25);
+            if (this.nowYPos != 35) {
+                this.nowYPos += 1;
+            }
+        }
+        g.fillRect(0, this.nowYPos, 18, 15);
+
+        g.drawRect(0, 20, 18, 30);
+        g.setFont(new Font("Arial", Font.PLAIN,8));
+        g.drawString(this.upString, 0, 20);
+        if (!Objects.equals(this.downString, "")) {
+            g.drawString(this.downString, 0, 60);
 
         }
-        g.drawRect(10, 25, 30, 50);
-        g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString(this.upString, 0, 16);
-        if (!Objects.equals(this.downString, "")) {
-            g.drawString(this.downString, 0, 91);
+    }
 
+    static class MouseAdapterMod extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            Switch sender = (Switch) e.getSource();
+            sender.switchStatus();
         }
     }
 
     private void myFundSettings() {
         this.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        this.setPreferredSize(new Dimension(50, 100));
+        this.setPreferredSize(new Dimension(20, 70));
         this.addMouseListener(new MouseAdapterMod());  // 添加鼠标响应事件
-
     }
 
     public void switchStatus() {
         this.isOn = !this.isOn;
-        System.out.println(this.getVisibleRect());
-        this.repaint();
+        this.timer.start();
     }
 
 
