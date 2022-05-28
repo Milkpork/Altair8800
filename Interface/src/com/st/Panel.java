@@ -2,6 +2,7 @@ package com.st;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class Panel extends JPanel {
     Light INTE = new Light("INTE");
@@ -59,19 +60,169 @@ public class Panel extends JPanel {
     Switch S1 = new Switch("   1");
     Switch S0 = new Switch("   0");
 
-    Switch TotalSwitch = new Switch(" OFF", "  ON");
-    Switch RunSwitch = new Switch("STOP", " RUN");
-    Switch SingleStepSwitch = new Switch("SINGLE");
-    Switch ExamineSwitch = new Switch("EXAMINE", "NEXT");
-    Switch DepositSwitch = new Switch("DEPO", "NEXT");
-    Switch ResetSwitch = new Switch("RESET", " CLR");
-    Switch ProtectSwitch = new Switch("PROTECT", "UNPROTECT");
-    Switch AUXSwitch1 = new Switch(" AUX");
-    Switch AUXSwitch2 = new Switch(" AUX");
+    BottomSwitch TotalSwitch = new BottomSwitch(" OFF", "  ON");
+    BottomSwitch RunSwitch = new BottomSwitch("STOP", " RUN");
+    BottomSwitch SingleStepSwitch = new BottomSwitch("SINGLE");
+    BottomSwitch ExamineSwitch = new BottomSwitch("EXAMINE", "NEXT");
+    BottomSwitch DepositSwitch = new BottomSwitch("DEPO", "NEXT");
+    BottomSwitch ResetSwitch = new BottomSwitch("RESET", " CLR");
+    BottomSwitch ProtectSwitch = new BottomSwitch("PROTECT", "UNPROTECT");
+    BottomSwitch AUXSwitch1 = new BottomSwitch(" AUX");
+    BottomSwitch AUXSwitch2 = new BottomSwitch(" AUX");
+
+    boolean isOpening = false;
+    int nowStatus;
+    int leftMissCount = 0, rightMissCount = -1;
+    boolean isRightRunning = true;
+    Light[] tennisList = {A15, A14, A13, A12, A11, A10, A9, A8};
+    Timer timer;
+
+
+    ActionListener tennisProgram = new ActionListener() {
+        int index = -1;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            index += isRightRunning ? 1 : -1;
+            index = index - Math.floorDiv(index, 8) * 8;
+            if (index == 0 && isRightRunning) {
+                rightMissCount += 1;
+                System.out.println("rightMiss!");
+            } else if (index == 7 && !isRightRunning) {
+                leftMissCount += 1;
+                System.out.println("leftMiss!");
+            }
+            int temp = index - (isRightRunning ? 1 : -1);
+            // temp%8, m - (int) Math.floorDiv(m, n) * n
+            tennisList[temp - Math.floorDiv(temp, 8) * 8].switchLight(false);
+            tennisList[index].switchLight(true);
+        }
+    };
+
+    class MyKeyListener implements KeyListener {
+        @Override // 按下
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyChar() == '0'){
+                S15.switchStatus();
+                if (nowStatus == 13 && !isRightRunning && S15.getOnStatus() && A15.getOnStatus()) {
+                    isRightRunning = !isRightRunning;
+                }
+            }else if (e.getKeyChar() == '1'){
+                S8.switchStatus();
+                if (nowStatus == 13 && isRightRunning && S8.getOnStatus() && A8.getOnStatus()) {
+                    isRightRunning = !isRightRunning;
+                }
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+        }
+
+        @Override // 输入的内容
+        public void keyTyped(KeyEvent e) {
+        }
+    }
+
+    class S15SwitchMod extends MouseAdapter {
+        //        S15
+        public void mouseClicked(MouseEvent e) {
+            if (nowStatus == 13 && !isRightRunning && S15.getOnStatus() && A15.getOnStatus()) {
+                isRightRunning = !isRightRunning;
+            }
+        }
+    }
+
+    class S8SwitchMod extends MouseAdapter {
+        //        S8
+        public void mouseClicked(MouseEvent e) {
+            if (nowStatus == 13 && isRightRunning && S8.getOnStatus() && A8.getOnStatus()) {
+                isRightRunning = !isRightRunning;
+            }
+        }
+    }
+
+    class TotalSwitchMod extends MouseAdapter {
+        //        总开关
+        public void mouseClicked(MouseEvent e) {
+            if (e.getY() < 20) {
+                // off
+                reset();
+                isOpening = false;
+                nowStatus = 0;
+            } else if (e.getY() > 50) {
+                // on
+                if (!isOpening) {
+                    MEMR.switchLight(true);
+                    MI.switchLight(true);
+                    WO.switchLight(true);
+                    D3.switchLight(true);
+                    D0.switchLight(true);
+                    WAIT.switchLight(true);
+                    A3.switchLight(true);
+                    A0.switchLight(true);
+                    isOpening = true;
+                }
+            }
+        }
+    }
+
+    class RunSwitchMod extends MouseAdapter {
+        //        运行
+        public void mouseClicked(MouseEvent e) {
+            if (!isOpening) {
+                return;
+            }
+            System.out.println(nowStatus);
+            if (e.getY() < 20) {
+                if (nowStatus == 13) {
+                    stopTennis();
+                }
+
+            } else if (e.getY() > 50) {
+                if (nowStatus == 12 || nowStatus == 14) {
+                    tableTennis();
+                }
+            }
+        }
+    }
+
+    class ExamineSwitch extends MouseAdapter {
+        //        运行
+        public void mouseClicked(MouseEvent e) {
+            if (!isOpening) {
+                return;
+            }
+            int switchOpenStatus = 0;  // 状态压缩
+            // 获取一个开关的状态码
+            Component[] ls = getComponents();
+            for (Component c : ls) {
+                if (c.getClass().getName().equals("com.st.Switch")) {
+                    if (((Switch) c).getOnStatus()) {
+                        int digit = Integer.parseInt(((Switch) c).upString.trim());
+                        switchOpenStatus |= (1 << digit);  // 二进制
+                    }
+                }
+            }
+            if (e.getY() < 20) {
+                System.out.println(switchOpenStatus);
+                if (switchOpenStatus == 0) {
+                    nowStatus = 12;  // TENNIS
+                } else if (switchOpenStatus == 128) {
+                    showMissCount(true);
+                }
+            } else if (e.getY() > 50) {
+                if (switchOpenStatus == 128) {
+                    showMissCount(false);
+                }
+
+            }
+        }
+    }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        frame.setSize(400, 300);
+        frame.setSize(800, 500);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel root = new Panel();
@@ -80,16 +231,28 @@ public class Panel extends JPanel {
     }
 
     public Panel() {
-        this.setLayout(null);
-        this.setMinimumSize(new Dimension(1260, 500));
+        this.timer = new Timer(200, tennisProgram);
         this.myLayouts();
+        this.myFundSettings();
+    }
+
+    public void myFundSettings() {
+        this.setFocusable(true);
+        this.addKeyListener(new MyKeyListener());
+        this.TotalSwitch.addMouseListener(new TotalSwitchMod());
+        this.ExamineSwitch.addMouseListener(new ExamineSwitch());
+        this.RunSwitch.addMouseListener(new RunSwitchMod());
+        this.S15.addMouseListener(new S15SwitchMod());
+        this.S8.addMouseListener(new S8SwitchMod());
     }
 
     public void myLayouts() {
+        // 布局管理
         int lightWidth = 20;
         int lightHeight = 50;
         int switchWidth = 20;
         int switchHeight = 70;
+        this.setMinimumSize(new Dimension(1260, 500));
         this.setLayout(null);
         this.add(this.INTE);
         this.INTE.setBounds(100, 50, 30, 50);
@@ -207,17 +370,90 @@ public class Panel extends JPanel {
         this.add(this.SingleStepSwitch);
         this.SingleStepSwitch.setBounds(240, 220, switchWidth, switchHeight);
         this.add(this.ExamineSwitch);
-        this.ExamineSwitch.setBounds(310, 220, switchWidth,switchHeight);
+        this.ExamineSwitch.setBounds(310, 220, switchWidth, switchHeight);
         this.add(this.DepositSwitch);
-        this.DepositSwitch.setBounds(370,220,switchWidth, switchHeight);
+        this.DepositSwitch.setBounds(370, 220, switchWidth, switchHeight);
         this.add(this.ResetSwitch);
         this.ResetSwitch.setBounds(440, 220, switchWidth, switchHeight);
         this.add(this.ProtectSwitch);
-        this.ProtectSwitch.setBounds(510,220,switchWidth, switchHeight);
+        this.ProtectSwitch.setBounds(510, 220, switchWidth, switchHeight);
         this.add(this.AUXSwitch1);
-        this.AUXSwitch1.setBounds(580,220,switchWidth, switchHeight);
+        this.AUXSwitch1.setBounds(580, 220, switchWidth, switchHeight);
         this.add(this.AUXSwitch2);
-        this.AUXSwitch2.setBounds(650,220,switchWidth, switchHeight);
+        this.AUXSwitch2.setBounds(650, 220, switchWidth, switchHeight);
     }
 
+    public void reset() {
+        Component[] ls = this.getComponents();
+        for (Component c : ls) {
+            if (c.getClass().getName().equals("com.st.Light")) {
+                ((Light) c).switchLight(false);
+            }
+        }
+    }
+
+    public void tableTennis() {
+        System.out.println("run tennis");
+        this.reset();
+        this.nowStatus = 13; // 开始运行
+        this.leftMissCount = 0;
+        this.rightMissCount = 0;
+        this.MEMR.switchLight(true);
+        this.MI.switchLight(true);
+        this.WO.switchLight(true);
+        this.D7.switchLight(true);
+        this.D6.switchLight(true);
+        this.D5.switchLight(true);
+        this.D4.switchLight(true);
+        this.D3.switchLight(true);
+        this.D2.switchLight(true);
+        this.D1.switchLight(true);
+        this.D0.switchLight(true);
+        this.A4.switchLight(true);
+        this.A3.switchLight(true);
+        this.A2.switchLight(true);
+        this.A1.switchLight(true);
+        this.A0.switchLight(true);
+        this.timer.start();
+    }
+
+    public void stopTennis() {
+        System.out.println("rightMiss：" + rightMissCount + "leftMiss: " + leftMissCount);
+        this.timer.stop();
+        this.nowStatus = 14;
+        this.reset();
+        this.MEMR.switchLight(true);
+        this.MI.switchLight(true);
+        this.WO.switchLight(true);
+        this.D4.switchLight(true);
+        this.D3.switchLight(true);
+        this.D1.switchLight(true);
+        this.WAIT.switchLight(true);
+        this.A3.switchLight(true);
+        this.A4.switchLight(true);
+    }
+
+    public void showMissCount(boolean isLeft) {
+        this.reset();
+        this.MEMR.switchLight(true);
+        this.MI.switchLight(true);
+        this.WO.switchLight(true);
+        this.WAIT.switchLight(true);
+        this.A7.switchLight(true);
+        int score;
+        if (isLeft) {
+            score = this.leftMissCount;
+        } else {
+            this.A0.switchLight(true);
+            score = this.rightMissCount;
+        }
+        D0.switchLight((score & 1) != 0);
+        D1.switchLight((score & 2) != 0);
+        D2.switchLight((score & 4) != 0);
+        D3.switchLight((score & 8) != 0);
+        D4.switchLight((score & 16) != 0);
+        D5.switchLight((score & 32) != 0);
+        D6.switchLight((score & 64) != 0);
+        D7.switchLight((score & 128) != 0);
+    }
 }

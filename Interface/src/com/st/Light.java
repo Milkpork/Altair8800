@@ -30,8 +30,10 @@ public class Light extends JPanel {
         Light c = new Light("hello");
         root.add(c);
         c.switchLight();
+
         //        test
         c.addMouseListener(new MouseAdapterModTest());  // 添加鼠标响应事件
+
         frame.setVisible(true);
     }
 
@@ -62,7 +64,7 @@ public class Light extends JPanel {
         }
         g.fillOval(0, 20, radius, radius);
         g.setColor(new Color(0, 0, 0));
-        g.setFont(new Font("Arial", Font.PLAIN,8));
+        g.setFont(new Font("Arial", Font.PLAIN, 8));
         g.drawString(this.text, 0, 20);
 
     }
@@ -75,5 +77,14 @@ public class Light extends JPanel {
     public void switchLight() {
         this.isLighting = !this.isLighting;
         this.repaint();
+    }
+
+    public void switchLight(boolean isLighting) {
+        this.isLighting = isLighting;
+        this.repaint();
+    }
+
+    public boolean getOnStatus() {
+        return this.isLighting;
     }
 }

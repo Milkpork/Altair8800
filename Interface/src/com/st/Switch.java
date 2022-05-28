@@ -82,7 +82,7 @@ public class Switch extends JPanel {
         g.fillRect(0, this.nowYPos, 18, 15);
 
         g.drawRect(0, 20, 18, 30);
-        g.setFont(new Font("Arial", Font.PLAIN,8));
+        g.setFont(new Font("Arial", Font.PLAIN, 8));
         g.drawString(this.upString, 0, 20);
         if (!Objects.equals(this.downString, "")) {
             g.drawString(this.downString, 0, 60);
@@ -92,6 +92,9 @@ public class Switch extends JPanel {
 
     static class MouseAdapterMod extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
+            if (e.getY() < 20 || e.getY() > 50) {
+                return;
+            }
             Switch sender = (Switch) e.getSource();
             sender.switchStatus();
         }
@@ -108,5 +111,8 @@ public class Switch extends JPanel {
         this.timer.start();
     }
 
+    public boolean getOnStatus() {
+        return this.isOn;
+    }
 
 }
