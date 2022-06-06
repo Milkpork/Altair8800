@@ -76,11 +76,10 @@ public class Panel extends JPanel {
     boolean isRightRunning = true;
     Light[] tennisList = {A15, A14, A13, A12, A11, A10, A9, A8};
     Timer timer;
-
+    int speed = 7;
+    int index = -1;
 
     ActionListener tennisProgram = new ActionListener() {
-        int index = -1;
-
         @Override
         public void actionPerformed(ActionEvent e) {
             index += isRightRunning ? 1 : -1;
@@ -102,12 +101,12 @@ public class Panel extends JPanel {
     class MyKeyListener implements KeyListener {
         @Override // 按下
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyChar() == '0'){
+            if (e.getKeyChar() == '1') {
                 S15.switchStatus();
                 if (nowStatus == 13 && !isRightRunning && S15.getOnStatus() && A15.getOnStatus()) {
                     isRightRunning = !isRightRunning;
                 }
-            }else if (e.getKeyChar() == '1'){
+            } else if (e.getKeyChar() == '0') {
                 S8.switchStatus();
                 if (nowStatus == 13 && isRightRunning && S8.getOnStatus() && A8.getOnStatus()) {
                     isRightRunning = !isRightRunning;
@@ -173,7 +172,7 @@ public class Panel extends JPanel {
             if (!isOpening) {
                 return;
             }
-            System.out.println(nowStatus);
+//            System.out.println(nowStatus);
             if (e.getY() < 20) {
                 if (nowStatus == 13) {
                     stopTennis();
@@ -187,29 +186,21 @@ public class Panel extends JPanel {
         }
     }
 
-    class ExamineSwitch extends MouseAdapter {
+    class ExamineSwitchMod extends MouseAdapter {
         //        运行
         public void mouseClicked(MouseEvent e) {
             if (!isOpening) {
                 return;
             }
-            int switchOpenStatus = 0;  // 状态压缩
-            // 获取一个开关的状态码
-            Component[] ls = getComponents();
-            for (Component c : ls) {
-                if (c.getClass().getName().equals("com.st.Switch")) {
-                    if (((Switch) c).getOnStatus()) {
-                        int digit = Integer.parseInt(((Switch) c).upString.trim());
-                        switchOpenStatus |= (1 << digit);  // 二进制
-                    }
-                }
-            }
+            int switchOpenStatus = getStatusCoef();
             if (e.getY() < 20) {
-                System.out.println(switchOpenStatus);
+//                System.out.println(switchOpenStatus);
                 if (switchOpenStatus == 0) {
                     nowStatus = 12;  // TENNIS
                 } else if (switchOpenStatus == 128) {
                     showMissCount(true);
+                } else if (switchOpenStatus == 1) {
+                    showSpeed();
                 }
             } else if (e.getY() > 50) {
                 if (switchOpenStatus == 128) {
@@ -220,18 +211,39 @@ public class Panel extends JPanel {
         }
     }
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setSize(800, 500);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    class DepositSwitchMod extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            if (!isOpening) {
+                return;
+            }
+            if (e.getY() < 20) {
+                int switchOpenStatus = getStatusCoef();
+                if (nowStatus == 15) {
+                    speed = switchOpenStatus;
+                    timer.setDelay(3500 / speed);
+                    showSpeed();
+                }
+            }
+        }
+    }
 
-        JPanel root = new Panel();
-        frame.setContentPane(root);
-        frame.setVisible(true);
+    class ResetSwitchMod extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            if (!isOpening) {
+                return;
+            }
+            if (e.getY() < 20) {
+//                System.out.println("resetnow " + speed);
+                if (nowStatus == 15) {
+                    resetButton();
+                }
+            }
+
+        }
     }
 
     public Panel() {
-        this.timer = new Timer(200, tennisProgram);
+        this.timer = new Timer(3500 / this.speed, tennisProgram);
         this.myLayouts();
         this.myFundSettings();
     }
@@ -240,10 +252,12 @@ public class Panel extends JPanel {
         this.setFocusable(true);
         this.addKeyListener(new MyKeyListener());
         this.TotalSwitch.addMouseListener(new TotalSwitchMod());
-        this.ExamineSwitch.addMouseListener(new ExamineSwitch());
+        this.ExamineSwitch.addMouseListener(new ExamineSwitchMod());
         this.RunSwitch.addMouseListener(new RunSwitchMod());
         this.S15.addMouseListener(new S15SwitchMod());
         this.S8.addMouseListener(new S8SwitchMod());
+        this.DepositSwitch.addMouseListener(new DepositSwitchMod());
+        this.ResetSwitch.addMouseListener(new ResetSwitchMod());
     }
 
     public void myLayouts() {
@@ -392,12 +406,28 @@ public class Panel extends JPanel {
         }
     }
 
+    public int getStatusCoef(){
+        int switchOpenStatus = 0;  // 状态压缩
+        // 获取一个开关的状态码
+        Component[] ls = getComponents();
+        for (Component c : ls) {
+            if (c.getClass().getName().equals("com.st.Switch")) {
+                if (((Switch) c).getOnStatus()) {
+                    int digit = Integer.parseInt(((Switch) c).upString.trim());
+                    switchOpenStatus |= (1 << digit);  // 二进制
+                }
+            }
+        }
+        return switchOpenStatus;
+    }
+
     public void tableTennis() {
-        System.out.println("run tennis");
         this.reset();
         this.nowStatus = 13; // 开始运行
         this.leftMissCount = 0;
-        this.rightMissCount = 0;
+        this.rightMissCount = -1;
+        this.isRightRunning = true;
+        this.index = -1;
         this.MEMR.switchLight(true);
         this.MI.switchLight(true);
         this.WO.switchLight(true);
@@ -418,7 +448,7 @@ public class Panel extends JPanel {
     }
 
     public void stopTennis() {
-        System.out.println("rightMiss：" + rightMissCount + "leftMiss: " + leftMissCount);
+//        System.out.println("rightMiss：" + rightMissCount + "leftMiss: " + leftMissCount);
         this.timer.stop();
         this.nowStatus = 14;
         this.reset();
@@ -433,6 +463,17 @@ public class Panel extends JPanel {
         this.A4.switchLight(true);
     }
 
+    public void showDValue(int value) {
+        D0.switchLight((value & 1) != 0);
+        D1.switchLight((value & 2) != 0);
+        D2.switchLight((value & 4) != 0);
+        D3.switchLight((value & 8) != 0);
+        D4.switchLight((value & 16) != 0);
+        D5.switchLight((value & 32) != 0);
+        D6.switchLight((value & 64) != 0);
+        D7.switchLight((value & 128) != 0);
+    }
+
     public void showMissCount(boolean isLeft) {
         this.reset();
         this.MEMR.switchLight(true);
@@ -440,20 +481,34 @@ public class Panel extends JPanel {
         this.WO.switchLight(true);
         this.WAIT.switchLight(true);
         this.A7.switchLight(true);
-        int score;
         if (isLeft) {
-            score = this.leftMissCount;
+            this.showDValue(this.leftMissCount);
         } else {
             this.A0.switchLight(true);
-            score = this.rightMissCount;
+            this.showDValue(this.rightMissCount);
         }
-        D0.switchLight((score & 1) != 0);
-        D1.switchLight((score & 2) != 0);
-        D2.switchLight((score & 4) != 0);
-        D3.switchLight((score & 8) != 0);
-        D4.switchLight((score & 16) != 0);
-        D5.switchLight((score & 32) != 0);
-        D6.switchLight((score & 64) != 0);
-        D7.switchLight((score & 128) != 0);
     }
+
+    public void showSpeed() {
+        this.nowStatus = 15;
+        this.reset();
+        this.MEMR.switchLight(true);
+        this.MI.switchLight(true);
+        this.WO.switchLight(true);
+        this.WAIT.switchLight(true);
+        this.A0.switchLight(true);
+        this.showDValue(this.speed);
+
+    }
+
+    public void resetButton() {
+        this.reset();
+        this.nowStatus = 12;
+        this.MEMR.switchLight(true);
+        this.MI.switchLight(true);
+        this.WO.switchLight(true);
+        this.WAIT.switchLight(true);
+        this.D0.switchLight(true);
+    }
+
 }

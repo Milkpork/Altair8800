@@ -5,13 +5,6 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-class MouseAdapterModTest extends MouseAdapter {
-    public void mouseClicked(MouseEvent e) {
-        Light sender = (Light) e.getSource();
-        sender.switchLight();
-//        System.out.println(sender.radius);
-    }
-}
 
 public class Light extends JPanel {
     private boolean isLighting;  // 是否点亮
@@ -32,7 +25,7 @@ public class Light extends JPanel {
         c.switchLight();
 
         //        test
-        c.addMouseListener(new MouseAdapterModTest());  // 添加鼠标响应事件
+//        c.addMouseListener(new MouseAdapterModTest());  // 添加鼠标响应事件
 
         frame.setVisible(true);
     }

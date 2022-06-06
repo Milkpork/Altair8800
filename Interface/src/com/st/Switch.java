@@ -14,6 +14,7 @@ public class Switch extends JPanel {
     Timer timer;
     int nowYPos = 35;
     String upString, downString;
+    AudioPlayer player;
 
     ActionListener taskPerformer = new ActionListener() {
 
@@ -37,6 +38,16 @@ public class Switch extends JPanel {
         }
     };
 
+    static class MouseAdapterMod extends MouseAdapter {
+        public void mouseClicked(MouseEvent e) {
+            if (e.getY() < 20 || e.getY() > 50) {
+                return;
+            }
+            Switch sender = (Switch) e.getSource();
+            sender.switchStatus();
+        }
+    }
+
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         frame.setSize(400, 300);
@@ -53,6 +64,11 @@ public class Switch extends JPanel {
         this.upString = s;
         this.downString = "";
         this.isOn = false;
+        try {
+            this.player = new AudioPlayer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         timer = new Timer(5, taskPerformer);
         this.myFundSettings();
 
@@ -62,6 +78,11 @@ public class Switch extends JPanel {
         this.upString = sUp;
         this.downString = sDown;
         this.isOn = false;
+        try {
+            this.player = new AudioPlayer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         timer = new Timer(5, taskPerformer);
         this.myFundSettings();
     }
@@ -90,16 +111,6 @@ public class Switch extends JPanel {
         }
     }
 
-    static class MouseAdapterMod extends MouseAdapter {
-        public void mouseClicked(MouseEvent e) {
-            if (e.getY() < 20 || e.getY() > 50) {
-                return;
-            }
-            Switch sender = (Switch) e.getSource();
-            sender.switchStatus();
-        }
-    }
-
     private void myFundSettings() {
         this.setCursor(new Cursor(Cursor.HAND_CURSOR));
         this.setPreferredSize(new Dimension(20, 70));
@@ -108,6 +119,7 @@ public class Switch extends JPanel {
 
     public void switchStatus() {
         this.isOn = !this.isOn;
+        this.player.play();
         this.timer.start();
     }
 

@@ -16,5 +16,6 @@ public class FundCoef {
     public int TENNIS = 12;
     public int TENNISING = 13;
     public int TENNISSTOP = 14;
+    public int TENNISSPEED = 15;
 
 }

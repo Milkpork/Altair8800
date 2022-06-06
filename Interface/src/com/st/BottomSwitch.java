@@ -14,9 +14,12 @@ public class BottomSwitch extends JPanel {
     int status = 0;  // 0->归位,1->向上,2->向下
     int nowYPos = 20;
     Timer timer;
+    AudioPlayer player;
+
     class MouseAdapterMod extends MouseAdapter {
 
         public void mouseClicked(MouseEvent e) {
+            player.play();
             if (e.getY() < 20) {
                 status = 1;
                 timer.start();
@@ -28,7 +31,6 @@ public class BottomSwitch extends JPanel {
     }
 
     ActionListener taskPerformer = new ActionListener() {
-
         @Override
         public void actionPerformed(ActionEvent e) {
             if (status == 1) {
@@ -67,6 +69,11 @@ public class BottomSwitch extends JPanel {
     }
 
     public BottomSwitch(String upString, String downString) {
+        try {
+            this.player = new AudioPlayer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         this.upButton = new JPanel();
         this.downButton = new JPanel();
         this.upString = upString;
@@ -76,6 +83,11 @@ public class BottomSwitch extends JPanel {
     }
 
     public BottomSwitch(String upString) {
+        try {
+            this.player = new AudioPlayer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         this.upButton = new JPanel();
         this.downButton = new JPanel();
         this.upString = upString;
